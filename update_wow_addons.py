@@ -7,6 +7,7 @@ from random import randrange
 from sys import exit
 from time import time
 from zipfile import ZipFile
+import argparse
 
 import cloudscraper
 from colorama import Fore, Style, deinit, init
@@ -15,8 +16,12 @@ from bs4 import BeautifulSoup as bs
 
 
 class Updater:
-    def __init__(self, testing=False):
+    def __init__(self, testing:bool, install:str):
         self.testing = testing  # if true, game dir changes and random addons are updated
+        self.install = install or False
+
+        if self.install:
+            self.install_new(self.install)
 
         self.os = pf_system()
 
@@ -104,6 +109,25 @@ class Updater:
         self.cfs = cloudscraper.create_scraper()
 
         self.main()
+
+
+    def install_new(self, install):
+        if len(install):
+            if install.startswith(("retail:", 'Retail:')):
+                version = 'retail'
+            elif install.startswith(("classic:","Classic:")):
+                version = 'classic'
+            else:
+                version = 'retail'
+            with open("update_wow_addons.config",'r') as f:
+                text = f.read()
+            text = text.replace(f'[{version.lower()}]\n', f'[{version}]\n{install.lower().replace(" ","-").replace(f"{version}:","")}\n')
+            with open("update_wow_addons.config",'w') as f:
+                f.write(text)
+        else:
+            raise RuntimeError("No Add-on to install specified. If you don't want to install, don't use the install flag")
+
+
 
     def collect_addons(self, client):
 
@@ -314,4 +338,11 @@ class Addon:
 
 
 if __name__ == '__main__':
-    Updater(testing=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testing', type=bool, help="Does a dry run. Usage: --testing True", required=False)
+    parser.add_argument('--install', type=str, help="Adds an addon to the config file and attempts to install it.\n"
+                        "Usage: --install my favourite addon", required=False)
+    args = parser.parse_args()
+    testing = args.testing
+    install = args.install
+    Updater(testing, install)
