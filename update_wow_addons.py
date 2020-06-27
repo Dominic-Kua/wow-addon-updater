@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup as bs
 
 
 class Updater:
-    def __init__(self, testing:bool, install:str):
+    def __init__(self, testing: bool, install: str):
         self.testing = testing  # if true, game dir changes and random addons are updated
         self.install = install or False
 
@@ -25,7 +25,7 @@ class Updater:
 
         self.os = pf_system()
 
-        if not self.os in ["Darwin", "Windows","Linux"]:
+        if self.os not in ['Darwin', 'Windows', 'Linux']:
             raise RuntimeError(f'{Fore.RED}Operating System ({self.os}) not supported.')
 
         self.base_url = 'https://www.curseforge.com'
@@ -40,7 +40,7 @@ class Updater:
             'Windows': pjoin(str(getenv('temp')), 'wow-addon-updates'),
             'Linux': pjoin(expanduser('~'), '.cache', 'wow-addon-updates'),
             'Darwin': pjoin(expanduser('~'), '.cache', 'wow-addon-updates'),
-             }
+        }
 
         self.cache_dir = self.cache_dirs[self.os]
 
@@ -49,7 +49,6 @@ class Updater:
                 makedirs(self.cache_dir)
             except PermissionError as e:
                 Fore.RED(f'Do not have permissions to access {self.cache_dir}, error:\n {e}')
-
 
         self.config_file = pjoin(dirname(__file__), 'update_wow_addons.config')
 
@@ -110,24 +109,23 @@ class Updater:
 
         self.main()
 
-
     def install_new(self, install):
         if len(install):
             if install.startswith(("retail:", 'Retail:')):
                 version = 'retail'
-            elif install.startswith(("classic:","Classic:")):
+            elif install.startswith(("classic:", "Classic:")):
                 version = 'classic'
             else:
                 version = 'retail'
-            with open("update_wow_addons.config",'r') as f:
+            with open("update_wow_addons.config", 'r') as f:
                 text = f.read()
-            text = text.replace(f'[{version.lower()}]\n', f'[{version}]\n{install.lower().replace(" ","-").replace(f"{version}:","")}\n')
-            with open("update_wow_addons.config",'w') as f:
+            text = text.replace(f'[{version.lower()}]\n',
+                                f'[{version}]\n{install.lower().replace(" ", "-").replace(f"{version}:", "")}\n')
+            with open("update_wow_addons.config", 'w') as f:
                 f.write(text)
         else:
-            raise RuntimeError("No Add-on to install specified. If you don't want to install, don't use the install flag")
-
-
+            raise RuntimeError(
+                "No Add-on to install specified. If you don't want to install, don't use the install flag")
 
     def collect_addons(self, client):
 
@@ -341,7 +339,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--testing', type=bool, help="Does a dry run. Usage: --testing True", required=False)
     parser.add_argument('--install', type=str, help="Adds an addon to the config file and attempts to install it.\n"
-                        "Usage: --install my favourite addon", required=False)
+                                                    "Usage: --install my favourite addon", required=False)
     args = parser.parse_args()
     testing = args.testing
     install = args.install
